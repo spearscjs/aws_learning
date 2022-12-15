@@ -22,3 +22,6 @@ values
 ( 7900, 'JAMES', 'CLERK', 7698,  to_date('3-12-1981','dd-mm-yyyy'),  950, null, 30 ),
 ( 7876, 'ADAMS', 'CLERK', 7788,  to_date('13-7-87', 'dd-mm-yyyy') ,   1100, null, 20 ),
 (  7844, 'TURNER', 'SALESMAN', 7698,  to_date('8-9-1981','dd-mm-yyyy'),  1500, 0, 30  );
+
+
+
