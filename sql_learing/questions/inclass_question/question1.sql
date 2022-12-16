@@ -44,11 +44,11 @@ VALUES
 ('cust_101','NY','08922', 'Mike', 'doge',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
 ('cust_102','CA','04922', 'sean', 'lan',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
 ('cust_103','CA','05922', 'sachin', 'ram',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
-('cust_104','TX','08922', 'bill', 'kja',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
-('cust_105','CA','08922', 'Douge', 'lilly',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
-('cust_106','CA','08922', 'hence', 'crow',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
-('cust_107','TX','08922', 'Mike', 'doge',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-02-01','yyy-mm-dd'),'Y'),
-('cust_107','NY','08922', 'Mike', 'doge',to_date('2022-02-03','yyy-mm-dd'),to_date('2022-01-01','yyy-mm-dd'),'N');
+('cust_104','TX','08942', 'bill', 'kja',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
+('cust_105','CA','08122', 'Douge', 'lilly',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
+('cust_106','CA','08322', 'hence', 'crow',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-01-01','yyy-mm-dd'),'Y'),
+('cust_107','TX','08722', 'Mike', 'doge',to_date('2022-01-01','yyy-mm-dd'),to_date('2029-02-01','yyy-mm-dd'),'Y'),
+('cust_107','NY','02122', 'Mike', 'doge',to_date('2022-02-03','yyy-mm-dd'),to_date('2022-01-01','yyy-mm-dd'),'N');
 
 
 1. Calculate total tran_ammt (sum) for each state
@@ -68,3 +68,4 @@ Join Question:
 
 1.Give me all details from transaction tale and zip_cd from dimension table.
 2. Sum of tran_ammt by zip_cd
+3.
