@@ -50,26 +50,24 @@ VALUES
 ('cust_107','NY','02122', 'Mike', 'doge',to_date('2022-02-03','yyyy-mm-dd'),to_date('2022-01-01','yyyy-mm-dd'),'N');
 
 
+Questions:
 
-1. Calculate total tran_ammt (sum) for each state
-2. Calculate maximum and minimum tran_ammt on each state and tran_date
-3. Calculate total transaction which have tran_ammt more than 10000
-4. Show the state which have total (sum) tran_ammt more than 10000
-5. show me the states where total ammt is more than 10000
-6. show me the states where cust_id ='cust_104' and  total ammt is more than 10000
-7. Calculate total transaction by state [ if state if NULL make it TX] where total transaction is more than 10000
-8. Show me a message col if state is null then "missing data" else "good data"
-9. Show me sum of tran_ammt by state [ if state is null and cust_id='cust_104' then 'TX' else 'CA']
-
-
+Part 1
+1. show me all the tran_date,tran_ammt and total tansaction ammount per tran_date
+2. show me all the tran_date,tran_ammt and total tansaction ammount per tran_date and rank of the transaction ammount desc within per tran_date
+Ouput:
+2022-01-01,7145.00,19543.00,1
+2022-01-01,6125.00,19543.00,2
+3. show me all the fields and total tansaction ammount per tran_date and only 2nd rank of the transaction ammount desc within per tran_date
+ (Here you are using he question2 but filtering only for rank 2)
 
 
-Join Question:
+Part 2
 
-1.Give me all details from transaction tale and zip_cd from dimension table.
-2. Sum of tran_ammt by zip_cd
-3. Give me top 5 customer [ (first name+ last name) is customer] by tran_ammt [highest is first] join on cust_id
-4. Give me the all cols from tran_fact [ I don't need state_cd is null] first five records [ lower to highest]
-
-
-
+1. Join tran_fact and cust_dim_details on cust_id and tran_dt between start_date and end_date
+2. show me all the fields and total tansaction ammount per tran_date and only 2nd rank of the transaction
+ ammount desc within per tran_date(Here you are using he question2 but filtering only for rank 2) and join
+  cust_dim_details on cust_id and tran_dt between start_date and end_date
+3. From question 2 : when stat_cd is not euqal to state_cd then data issues else good data as stae_cd_status
+ [Note NUll from left side is not equal NUll from other side  >> means lets sayd NULL value from fact table if compared
+ to NULL Value to right table then it should be data issues]
