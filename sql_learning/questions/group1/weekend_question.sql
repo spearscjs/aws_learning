@@ -75,6 +75,32 @@ WHERE r = 2;
 -- 3. From question 2 : when stat_cd is not euqal to state_cd then data issues else good data as stae_cd_status
 --  [Note NUll from left side is not equal NUll from other side  >> means lets sayd NULL value from fact table if compared
 --  to NULL Value to right table then it should be data issues]
+
+
+-- below query incorporates question 2 columns (copies output given in the email)
+SELECT  tran_date, tran_ammt, stat_cd, dd.cust_id, rnk1, total_tran_per_date, state_cd, zip_cd, 
+	CASE 
+		WHEN (dd.state_cd IS NULL) OR (tf.stat_cd IS NULL) THEN 'data issues'
+		WHEN (dd.state_cd = tf.stat_cd) THEN 'good data'
+		ELSE 'data issues'
+	END AS stae_cd_status
+FROM 
+(
+	SELECT *,
+		SUM(tran_ammt) OVER w AS total_tran_per_date, 
+		RANK() OVER (w ORDER BY tran_ammt DESC) rnk1
+	FROM cards_ingest.tran_fact
+	WINDOW w AS (PARTITION BY tran_date)
+) tf
+JOIN cards_ingest.cust_dim_details dd
+	ON tf.cust_id = dd.cust_id 
+	AND (
+		tf.tran_date >= dd.start_date 
+		AND tf.tran_date <= dd.end_date 
+	);
+	
+	
+-- below query does not incorporate question 2 columns
 SELECT dd.cust_id, tran_id, stat_cd, state_cd ,
 	CASE 
 		WHEN (dd.state_cd IS NULL) OR (tf.stat_cd IS NULL) THEN 'data issues'
@@ -84,3 +110,5 @@ SELECT dd.cust_id, tran_id, stat_cd, state_cd ,
 FROM cards_ingest.cust_dim_details dd
 JOIN cards_ingest.tran_fact tf
 ON dd.cust_id = tf.cust_id;
+
+
