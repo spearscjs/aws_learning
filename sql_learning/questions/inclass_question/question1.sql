@@ -112,6 +112,4 @@ ORDER BY SUM(tran_ammt) DESC LIMIT 5;
 
 
 -- 4. Give me the all cols from tran_fact [ I don't need state_cd is null] first five records [ lower to highest]
--- i am confused as to what this i asking
--- ?????
 SELECT * FROM cards_ingest.tran_fact tran_fact WHERE stat_cd IS NOT NULL ORDER BY tran_ammt LIMIT 5;
