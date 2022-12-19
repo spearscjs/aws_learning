@@ -44,9 +44,10 @@ FROM cards_ingest.tran_fact tf
 JOIN cards_ingest.cust_dim_details dd
 	ON tf.cust_id = dd.cust_id 
 	AND (
-		tf.tran_date >= dd.start_date 
-		AND tf.tran_date <= dd.end_date 
+		tf.tran_date BETWEEN dd.start_date 
+		AND dd.end_date 
 	);
+
 
 
 
@@ -97,18 +98,9 @@ JOIN cards_ingest.cust_dim_details dd
 	AND (
 		tf.tran_date >= dd.start_date 
 		AND tf.tran_date <= dd.end_date 
-	);
+	)
+WHERE rnk1 = 2;
 	
 	
--- below query does not incorporate question 2 columns
-SELECT dd.cust_id, tran_id, stat_cd, state_cd ,
-	CASE 
-		WHEN (dd.state_cd IS NULL) OR (tf.stat_cd IS NULL) THEN 'data issues'
-		WHEN (dd.state_cd = tf.stat_cd) THEN 'good data'
-		ELSE 'data issues'
-	END
-FROM cards_ingest.cust_dim_details dd
-JOIN cards_ingest.tran_fact tf
-ON dd.cust_id = tf.cust_id;
 
 
