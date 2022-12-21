@@ -8,6 +8,7 @@ SELECT * FROM cards_ingest.emp;
 -- department numbers from employee table
 SELECT DISTINCT deptno FROM cards_ingest.emp;
 
+
 -- department names from employee table
 SELECT DISTINCT dname 
 FROM  cards_ingest.dept dept 
