@@ -75,3 +75,21 @@ Note : Here in case 1 you are including all the transaction to show the count bu
 7. delete records which are duplicate from cust_dim_details  table. (Keep the latest record only by date)
 8. Show me all the custid and tranid and total transaction by cust id where you don't have matching record in cust_dim_details
 [join on cust id and check trandt between start_date,end_date]
+
+with all_cust as (
+select  sum(tran_ammt),tran_date,cust_id from cards_ingest.tran_fact group by 2,3
+)
+
+
+
+Answer Query:
+
+1.with all_cust as (
+select  sum(tran_ammt) tot_ammount ,tran_date,cust_id from cards_ingest.tran_fact
+group by 2,3
+),
+get_prev as ( select cust_id,tran_date,tot_ammount,
+                     nvl(lag(tot_ammount,1) over(partition by cust_id order by tran_date),0) as prev_tot_ammount,
+                     coalesce(lag(tran_date,1) over(partition by cust_id order by tran_date),'2022-01-01') as prev_tran_date
+              from all_cust )
+select * from get_prev where prev_tot_ammount > tot_ammount
