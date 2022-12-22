@@ -54,7 +54,7 @@ VALUES
 ('cust_105','CA','08122', 'Douge', 'lilly',to_date('2022-01-01','yyyy-mm-dd'),to_date('2029-01-01','yyyy-mm-dd'),'Y'),
 ('cust_106','CA','08322', 'hence', 'crow',to_date('2022-01-01','yyyy-mm-dd'),to_date('2029-01-01','yyyy-mm-dd'),'Y'),
 ('cust_107','TX','08722', 'Mike', 'dogeee',to_date('2022-01-01','yyyy-mm-dd'),to_date('2022-02-01','yyyy-mm-dd'),'Y'),
-('cust_107','TX','08722', 'Mike', Null,to_date('2022-02-02','yyyy-mm-dd'),to_date('2029-09-01','yyyy-mm-dd'),'Y'),
+('cust_107','TX','08723', 'Mike', Null,to_date('2022-02-02','yyyy-mm-dd'),to_date('2029-09-01','yyyy-mm-dd'),'Y'),
 ('cust_107','NY','02122', 'Mike', 'doge',to_date('2022-09-02','yyyy-mm-dd'),to_date('2029-01-01','yyyy-mm-dd'),'N');
 
 
@@ -66,3 +66,7 @@ total_transaction ammont per state cd, total number of trasaction (don't include
 
 Note : Here in case 1 you are including all the transaction to show the count but later you have tu just include only where >1000
 4. in cust_dim_details change all the name from Mike to Nike where cust_last_name !='dogeee'
+
+5.  Show me the month wise transaction ammount and zip_cd
+6. Show me active customer per month?
+7. delete records which are duplicate from cust_dim_details  table. (Keep the latest record only by date)
