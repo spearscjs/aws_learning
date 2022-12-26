@@ -24,10 +24,22 @@ FROM cards_ingest.tran_fact;
 WITH totals as 
     (SELECT *, 
         COUNT(*) OVER (PARTITION BY cust_id,stat_cd) AS tran_count 
-    FROM cards_ingest.tran_fact
-    WINDOW w as (PARTITION BY cust_id,stat_cd))
+    FROM cards_ingest.tran_fact)
 SELECT DISTINCT cust_id, stat_cd, tran_count, SUM(tran_ammt) OVER (PARTITION BY cust_id,stat_cd) AS tran_sum FROM totals 
 GROUP BY cust_id, stat_cd, tran_ammt, tran_count
+
+
+
+
+-- vs 
+
+select cust_id,stat_cd,tran_date ,tran_ammt,
+       sum(1) over( partition by stat_cd )  as tran_count,
+       sum(case when tran_ammt <1000 then 0 else 1 end ) over( partition by stat_cd )  as tran_count
+from cards_ingest.tran_fact --where cust_id='cust_101'
+order by cust_id,stat_cd,tran_date
+
+
 
 
 
@@ -40,5 +52,7 @@ WHERE
     cust_last_name IS NULL OR (cust_last_name != 'doge' AND cust_first_name ='Mike');
 
 SELECT * FROM cards_ingest.cust_dim_details
+
+
 
 

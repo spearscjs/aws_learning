@@ -160,6 +160,159 @@ select * from get_prev where prev_tot_ammount > tot_ammount
 
 
 
+-- 5.  Show me the month wise transaction ammount and zip_cd
+SELECT EXTRACT(MONTH from tran_date) AS month, EXTRACT(YEAR from tran_date) AS year, zip_cd, SUM(tran_ammt) AS total_tran 
+FROM cards_ingest.tran_fact tf
+    JOIN cards_ingest.cust_dim_details cdd
+    ON tf.cust_id = cdd.cust_id
+GROUP BY zip_cd, month, year;
+
+-- 6. Show me active customer per month?
+SELECT cust_id, EXTRACT(MONTH from start_date) AS month, EXTRACT(YEAR from start_date) AS year 
+FROM cards_ingest.cust_dim_details WHERE active_flag = 'Y';
+
+
+-- 7. delete records which are duplicate from cust_dim_details  table. (Keep the latest record only by date)
+DELETE FROM cards_ingest.cust_dim_details cdd
+    WHERE  cdd.start_date < (SELECT max(start_date) FROM cards_ingest.cust_dim_details cdd2 
+    WHERE cdd2.cust_id = cdd.cust_id);
+
+
+
+-- 8. Show me all the custid and tranid and total transaction by cust id where you don't have matching record in cust_dim_details
+-- [join on cust id and check trandt between start_date,end_date]
+
+-- USE OUTER JOIN
+
+
+
+SELECT tf.cust_id, tran_id, SUM(tran_ammt) OVER (PARTITION BY tf.cust_id ORDER BY tf.cust_id, tran_date 
+ROWS BETWEEN UNBOUNDED PRECEDING  AND CURRENT ROW) total_tran_ammt 
+FROM cards_ingest.cust_dim_details cdd 
+JOIN cards_ingest.tran_fact tf 
+ON cdd.cust_id = tf.cust_id
+
+
+
+
+SELECT tf.cust_id, tran_id, SUM(tran_ammt) OVER (PARTITION BY tf.cust_id ORDER BY tf.cust_id, tran_date 
+ROWS BETWEEN UNBOUNDED PRECEDING  AND CURRENT ROW) total_tran_ammt 
+FROM cards_ingest.cust_dim_details cdd 
+JOIN cards_ingest.tran_fact tf 
+ON cdd.cust_id = tf.cust_id
+
+ORDER BY cust_id, state_cd, tran_date, tran_ammt 
+
+
+
+
+SELECT tf.cust_id, tran_id, COUNT(1) OVER (PARTITION BY tf.cust_id ORDER BY tf.cust_id, tran_date 
+ROWS BETWEEN UNBOUNDED PRECEDING  AND CURRENT ROW) total_tran_ammt 
+FROM cards_ingest.cust_dim_details cdd 
+JOIN cards_ingest.tran_fact tf 
+ON cdd.cust_id = tf.cust_id
+
+
+
+-- this
+SELECT tf.cust_id, tran_id, SUM(tran_ammt) OVER (PARTITION BY tf.cust_id ORDER BY tf.cust_id, tran_date, tran_ammt) total_tran_ammt 
+FROM cards_ingest.cust_dim_details cdd 
+JOIN cards_ingest.tran_fact tf 
+ON cdd.cust_id = tf.cust_id
+
+-- vs 
+
+-- this
+SELECT tf.cust_id, tran_id, SUM(tran_ammt) OVER (PARTITION BY tf.cust_id ORDER BY tf.cust_id, tran_date) total_tran_ammt 
+FROM cards_ingest.cust_dim_details cdd 
+JOIN cards_ingest.tran_fact tf 
+ON cdd.cust_id = tf.cust_id
+
+
+
+
+
+
+
+
+
+
+/*
+what kind of join? 
+    out or inner? and why?
+    review video
+
+
+outer join -- all record mathcing and not matching
+    -- cust id + tran id between
+    -- if not still get
+
+
+-- what if both outer join are null?
+
+*?
+
+
+
+
+/*
+
+
+select cust_id,stat_cd,tran_date,tran_ammt ,
+       sum(tran_ammt) over(partition by cust_id order by tran_date
+       ROWS between UNBOUNDED PRECEDING and CURRENT ROW)  as running_tran_ammt
+from cards_ingest.tran_fact where cust_id='cust_101'
+order by cust_id,stat_cd,tran_date
+
+ 
+select cust_id,stat_cd,tran_date,tran_ammt from cards_ingest.tran_fact  where cust_id='cust_101'
+order by cust_id,stat_cd,tran_date,tran_ammt
+ 
+d0,e1,1,1
+d1,e2,2,3
+d2,e1,3,6
+d3,e2,5,11
+ 
+d0,e1,1
+d1,e2,2
+d2,e1,4
+d3,e2,7
+ 
+select cust_id,stat_cd,tran_date,tran_ammt ,
+       sum(tran_ammt) over( order by tran_date
+       ROWS between UNBOUNDED PRECEDING and CURRENT ROW)  as running_tran_ammt
+from cards_ingest.tran_fact --where cust_id='cust_101'
+order by cust_id,stat_cd,tran_date
+
+ 
+-- Show all the cust id,state cd, total number of trasaction (Include all the transactio per state cd) and
+-- total_transaction ammont per state cd, total number of trasaction (don't include any transaction which are less than 1000)
+
+ 
+select cust_id,stat_cd,tran_date ,tran_ammt,
+       sum(1) over( partition by stat_cd )  as tran_count,
+       sum(case when tran_ammt <1000 then 0 else 1 end ) over( partition by stat_cd )  as tran_count
+from cards_ingest.tran_fact --where cust_id='cust_101'
+order by cust_id,stat_cd,tran_date
+ 
+select count(1),cust_id from cards_ingest.cust_dim_details
+group by cust_id
+having count(1) >1
+ 
+-- 8. Show me all the custid and tranid and total transaction by cust id where you don't have matching record in cust_dim_details
+-- [join on cust id and check trandt between start_date,end_date]
+ 
+select fct.cust_id,tran_id,zip_cd,
+sum(tran_ammt) over(partition by fct.cust_id) as tot_tran_ammt from cards_ingest.tran_fact fct
+left outer join cards_ingest.cust_dim_details dm
+on fct.cust_id=dm.cust_id and tran_date between start_date and end_date
+where zip_cd is null
+
+
+
+*/
+
+
 
 
 
