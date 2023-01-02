@@ -7,9 +7,6 @@ from sqlalchemy.engine.url import URL
 
 
 def do_query( query : str, args : list ) :
-    # 1. Connect to sql database using python.
-    conn = psycopg2.connect( host=dbc.hostname, user=dbc.username, password=dbc.password, dbname=dbc.database )
-
     """
     execute postgresql query on connected database
 
@@ -18,6 +15,8 @@ def do_query( query : str, args : list ) :
     :return: pandas DataFrame for query result
     :rtype: pd.DataFrame
     """
+    # 1. Connect to sql database using python.
+    conn = psycopg2.connect( host=dbc.hostname, user=dbc.username, password=dbc.password, dbname=dbc.database )
     cur = conn.cursor()
     cur.execute( query, args )
     # pandas frame
@@ -35,9 +34,17 @@ def do_query( query : str, args : list ) :
 
 
 
+def do_frameToTable(frame, table_name : str, schema : str, if_exists = 'replace') :
+    """
+    execute postgresql query to replace schema.table_name with frame data on connected database
 
-
-def frameToTable(frame, name : str, schema : str) :
+    :param frame: pandas frame that will overwrite schema.table_name
+    :param table_name: name of table to be overwritten
+    :param schema: name of schema that table_name is in 
+    :param if_exists: {‘fail’, ‘replace’, ‘append’} -- pandas to_sql parameter, defines behavior for frameToTable
+    :return: None or Int
+    :rtype: None if rows not returned, Int equal to number of rows affected (if integer returned for rows by sqlalchemy)
+    """
     r = url_object = URL.create(
         'postgresql',
         username=dbc.username,
@@ -47,4 +54,4 @@ def frameToTable(frame, name : str, schema : str) :
         database=dbc.database
     )
     engine = create_engine(url_object)
-    return frame.to_sql(name, con = engine, schema=schema, if_exists='replace', index=False)
+    return frame.to_sql(table_name, con = engine, schema=schema, if_exists=if_exists, index=False)
