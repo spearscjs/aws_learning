@@ -1,0 +1,5 @@
+hostname = 'localhost'
+username = 'postgres'
+password = 'password'
+database = 'cards_ingest'
+port = '5432'
