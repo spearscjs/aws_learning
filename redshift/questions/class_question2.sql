@@ -1,34 +1,80 @@
 
 /*
-1. Create a schema lkp_data.
+    1. Create a schema lkp_data.
+    2. Create a table lkp_state_details. col (state_cd,population_cnt, potential_customer_cnt)
+    data:
+    NY,200,100
+    CA,500,200
+    TX,400,300
+    NV,100,90
+    NJ,200,70
 */
-CREATE SCHEMA IF NOT EXISTS lkp_data;
+BEGIN;
+    CREATE SCHEMA IF NOT EXISTS lkp_data;
+    DROP TABLE IF EXISTS lkp_data.lkp_state_details;
+    CREATE TABLE IF NOT EXISTS lkp_data.lkp_state_details(
+        stat_cd varchar(2),
+        population_cnt int,
+        potential_customer_cnt int
+        
+    );
+    TRUNCATE TABLE lkp_data.lkp_state_details;
+    INSERT INTO lkp_data.lkp_state_details
+        (stat_cd, population_cnt, potential_customer_cnt)
+        VALUES
+            ('NY',200,100),
+            ('CA',500,200),
+            ('TX',400,300),
+            ('NV',100,90),
+            ('NJ',200,70);
+    COMMIT;
+END;
+
+
 /*
-2. Create a table lkp_state_details. col (state_cd,population_cnt, potential_customer_cnt)
-data:
-NY,200,100
-CA,500,200
-TX,400,300
-NV,100,90
-NJ,200,70
+TRUNCATE / REINSERT VALUES OF TRAN_FACT
 */
-CREATE TABLE IF NOT EXISTS lkp_data.lkp_state_details(
-    stat_cd varchar(2),
-    population_cnt int,
-    potential_customer_cnt int
-    
-);
-TRUNCATE TABLE lkp_state_details;
-
-INSERT INTO lkp_state_details(stat_cd, population_cnt, potential_customer_cnt)
-    VALUES
-        ('NY',200,100),
-        ('CA',500,200),
-        ('TX',400,300),
-        ('NV',100,90),
-        ('NJ',200,70)
-;
-
+/*
+BEGIN;
+    CREATE SCHEMA IF NOT EXISTS cards_ingest;
+    DROP TABLE IF EXISTS cards_ingest.tran_fact;
+    create table cards_ingest.tran_fact(
+        tran_id int,
+        cust_id varchar(10),
+        stat_cd varchar(2),
+        tran_ammt decimal(10,2),
+        tran_date date
+    );
+    TRUNCATE TABLE cards_ingest.tran_fact;
+    INSERT INTO cards_ingest.tran_fact
+        (tran_id, cust_id, stat_cd, tran_ammt, tran_date) 
+        VALUES
+            (102020, 'cust_101', 'NY', 125,to_date('2022-01-01','yyyy-mm-dd')),
+            (102021, 'cust_101', 'NY', 5125,to_date('2022-01-01','yyyy-mm-dd')),
+            (1020321, 'cust_101', 'NY', 225,to_date('2022-02-01','yyyy-mm-dd')),
+            (1020121, 'cust_101', 'NY', 4125,to_date('2022-02-03','yyyy-mm-dd')),
+            (1020222, 'cust_102', 'CA', 6125,to_date('2022-01-01','yyyy-mm-dd')),
+            (1020223, 'cust_103', 'CA', 7145,to_date('2022-01-01','yyyy-mm-dd')),
+            (1023023, 'cust_103', 'CA', 7145,to_date('2022-04-01','yyyy-mm-dd')),
+            (1020123, 'cust_103', 'CA', 7145,to_date('2022-03-01','yyyy-mm-dd')),
+            (1020223, 'cust_103', 'CA', 7145,to_date('2022-03-02','yyyy-mm-dd')),
+            (102024, 'cust_104', 'TX', 1023,to_date('2022-01-01','yyyy-mm-dd')),
+            (102025, 'cust_101', 'NY', 670,to_date('2022-01-03','yyyy-mm-dd')),
+            (102026, 'cust_101', 'NY', 5235,to_date('2022-01-03','yyyy-mm-dd')),
+            (102027, 'cust_102', 'CA', 61255,to_date('2022-01-04','yyyy-mm-dd')),
+            (102028, 'cust_103', 'CA', 7345,to_date('2022-01-04','yyyy-mm-dd')),
+            (102029, 'cust_104', 'TX', 1023,to_date('2022-01-05','yyyy-mm-dd')),
+            (102030, 'cust_109', NULL, 1023,to_date('2022-01-05','yyyy-mm-dd')),
+            (102031, 'cust_104',Null, 1023,to_date('2022-01-05','yyyy-mm-dd')),
+            (102031, 'cust_107','TX', 4000,to_date('2022-01-05','yyyy-mm-dd')),
+            (1022031, 'cust_107','TX', 4000,to_date('2022-02-05','yyyy-mm-dd')),
+            (10202231, 'cust_107','TX', 4000,to_date('2022-02-03','yyyy-mm-dd')),
+            (1302031, 'cust_107','CA', 7000,to_date('2022-02-05','yyyy-mm-dd')),
+            (10202231, 'cust_111','NV', 10000,to_date('2022-02-03','yyyy-mm-dd')),
+            (10202231, 'cust_111','NV', 9000,to_date('2022-07-03','yyyy-mm-dd'));
+    COMMIT;
+END;
+*/
 
 
 /*
@@ -42,11 +88,12 @@ who are not customer in but still lives in the state (population - number of cus
 
 -- ASSUMING EACH UNIQUE CUSTOMER DOES NOT AFFECT THE POPULATION TOTAL FOR THE NEXT DAY
 WITH tf AS (
-    SELECT DISTINCT cust_id, tf.stat_cd, tran_date,  population_cnt
+    SELECT DISTINCT cust_id, tf.stat_cd, tran_date, population_cnt
     FROM cards_ingest.tran_fact tf 
     INNER JOIN lkp_data.lkp_state_details sd
     ON tf.stat_cd = sd.stat_cd
-    WHERE tf.* IS NOT NULL
+    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL
 )
 SELECT stat_cd, tran_date, COUNT(*) num_cust_per_date, population_cnt - COUNT(*) num_promotion_cust
 FROM tf
@@ -62,7 +109,9 @@ uniques AS (
     SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
     MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
     FROM cards_ingest.tran_fact tf
-    WHERE tf.* IS NOT NULL ORDER BY yr,mth,dy,stat_cd
+    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL 
+    ORDER BY yr,mth,dy,stat_cd
 ),
 -- number of new customers per day per state
 new_cust_per_day AS ( 
@@ -81,7 +130,8 @@ new_cust_per_day AS (
 -- sum of new cust per day
 sum_new_cust_per_day AS (
     SELECT yr, mth, dy, stat_cd,
-        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy) AS total_customers_per_state
+        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy 
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_customers_per_state
     FROM new_cust_per_day nc
 ),
 -- number of customers per day per state
@@ -118,7 +168,8 @@ WITH tf AS (
     FROM cards_ingest.tran_fact tf 
     INNER JOIN lkp_data.lkp_state_details sd
     ON tf.stat_cd = sd.stat_cd
-    WHERE tf.* IS NOT NULL
+    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL 
 ),
 promo AS (
     SELECT stat_cd, tran_date, COUNT(*) num_cust_per_date, (potential_customer_cnt - COUNT(*)) * 5 promotion_cost
@@ -139,7 +190,8 @@ uniques AS (
     SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
     MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
     FROM cards_ingest.tran_fact tf
-    WHERE tf.* IS NOT NULL ORDER BY yr,mth,dy,stat_cd
+    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL ORDER BY yr,mth,dy,stat_cd
 ),
 -- number of new customers per day per state
 new_cust_per_day AS ( 
@@ -158,7 +210,8 @@ new_cust_per_day AS (
 -- sum of new cust per day
 sum_new_cust_per_day AS (
     SELECT yr, mth, dy, stat_cd,
-        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy) AS total_customers_per_state
+        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy 
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_customers_per_state
     FROM new_cust_per_day nc
 ),
 -- number of customers per day per state
@@ -194,7 +247,9 @@ uniques AS (
     SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
     MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
     FROM cards_ingest.tran_fact tf
-    WHERE tf.* IS NOT NULL ORDER BY yr,mth,dy,stat_cd
+    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL 
+    ORDER BY yr,mth,dy,stat_cd
 ),
 -- number of new customers per day per state
 new_cust_per_day AS ( 
@@ -209,8 +264,14 @@ new_cust_per_day AS (
         ) nc
     ON 
         nc.yr = u.yr AND nc.mth = u.mth AND nc.dy = u.dy  AND nc.stat_cd = u.stat_cd
+),
+sum_new_cust_per_day AS (
+    SELECT yr, mth, dy, stat_cd, new_cust_per_day,
+        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy 
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_customers_per_state
+    FROM new_cust_per_day nc
 )
-SELECT * FROM new_cust_per_day;
+SELECT * FROM sum_new_cust_per_day;
 
 
 /*
@@ -257,7 +318,8 @@ uniques AS (
     SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
     MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
     FROM cards_ingest.tran_fact tf
-    WHERE tf.* IS NOT NULL ORDER BY yr,mth,dy,stat_cd
+    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL  ORDER BY yr,mth,dy,stat_cd
 ),
 -- number of new customers per day per state
 new_cust_per_day AS ( 
