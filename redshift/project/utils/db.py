@@ -6,9 +6,9 @@ from sqlalchemy.engine.url import URL
 
 
 
-def do_query( query : str, args : list ) :
+def do_query(query : str, args : list ) :
     """
-    execute postgresql query on connected database
+    execute postgresql query via postcopg2 on database configured in config/database_connection.py
 
     :param query: postgresql query string 
     :param args: arguments for query string (see https://www.psycopg.org/docs/usage.html#the-problem-with-the-query-parameters)
@@ -46,7 +46,7 @@ def do_frameToTable(frame, table_name : str, schema : str, if_exists = 'replace'
     :rtype: None if rows not returned, Int equal to number of rows affected (if integer returned for rows by sqlalchemy)
     """
     r = url_object = URL.create(
-        'postgresql',
+        dbc.drivername,
         username=dbc.username,
         password=dbc.password,  # plain (unescaped) text
         host=dbc.hostname,
