@@ -1,3 +1,4 @@
+# # before logging in see https://www.postgresql.org/docs/8.1/libpq-pgpass.html
 hostname = 'localhost'
 username = 'postgres'
 password = 'password'
