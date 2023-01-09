@@ -70,7 +70,7 @@ def do_query_file(filePathname : str):
     """
     conn = psycopg2.connect( host=dbc.hostname, user=dbc.username, password=dbc.password, dbname=dbc.database, port=dbc.port )
     cur = conn.cursor()
-    ret = None
+    frame = None
     with open(filePathname, encoding = 'utf8') as f:
         ret = cur.execute(f.read())
         print(filePathname + ' done.')
