@@ -57,7 +57,6 @@ def do_frameToTable(frame, table_name : str, schema : str) :
     # CLOSE THE ENGINE???
     return frame.to_sql(table_name, con = engine, schema=schema, if_exists='append', index=False)
 
- 
 
 
 def do_query_file(filePathname : str):
