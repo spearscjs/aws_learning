@@ -1,0 +1,115 @@
+'''
+1. Build redshift architecture diagram.
+SEE /redshift/project/redshift_diagram.jpg
+
+
+
+2. What is columnar data format? what are the advantages?
+Data is stored on the disk in column order opposed to row order. 
+Storing in this way enables:
+    1. reduces amount of data you need to load by using disk space more efficiently. If the block size is smaller than a single record, the space is wasted -- avoided with columnar data storage
+    2. since things are stored in column order, only the selected columns are loaded instead of loading each row and then parsing them 
+    3. compression for each data type which improves read/write IO by minimizing the amount of disk space used therefore minimizing the CPU usage and time
+        - also network transfer through nodes is reduced as well
+  
+
+
+3. What is encoding? Different type of encoding? A sample create table statement with encoding.
+
+Encoding in AWS is used in compression / decompression which transforms data in order to reduce the amount of disk space used and increase query performance. 
+
+SAMPLE TABLE:
+
+CREATE TABLE IF NOT EXISTS cards_ingest.tran_fact(
+    tran_id int encode delta,
+    cust_id varchar(10) encode raw, 
+    stat_cd varchar(2) encode raw, 
+    tran_ammt decimal(10,2) encode AZ64,
+    tran_date date encode delta
+) SORTKEY(tran_date);
+
+
+ENCODING TYPES:
+
+Raw -- raw data, uncompressed
+
+AZ64 --  SMALLINT, INTEGER, BIGINT, DECIMAL (Also works on DATE, TIMESTAMP, TIMESTAMPTZ)
+- Amazon created encoding, comparable compression to ZSTD with increased performance. 
+- Works well on small data types.
+FROM DOCS:
+                Use AZ64 to achieve significant storage savings and high performance for numeric, 
+                date, and time data types.
+
+Byte-dictionary -- SMALLINT, INTEGER, BIGINT, DECIMAL, REAL, DOUBLE PRECISION, CHAR, VARCHAR, DATE, TIMESTAMP, TIMESTAMPTZ
+- creates seperate dictionary values for each block of columns on disk. 
+- Very effective on columns with limited number of unique values (i.e. zipcode, state)
+
+Delta -- SMALLINT, INT, BIGINT, DATE, TIMESTAMP, DECIMAL
+Delta32k -- INT, BIGINT, DATE, TIMESTAMP, DECIMAL
+- records difference between values that follow eachother 
+- useful fror datetime columns
+- delta32k has two byte range, delta has 1byte range. If exceeded, original value is stored + leading 1 byte flag
+FROM DOCS: 
+                For example, suppose that the column contains 10 integers in sequence from 1 to 10. 
+                The first are stored as a 4-byte integer (plus a 1-byte flag). 
+                The next nine are each stored as a byte with the value 1, 
+                indicating that it is one greater than the previous value.
+
+LZO -- SMALLINT, INTEGER, BIGINT, DECIMAL, CHAR, VARCHAR, DATE, TIMESTAMP, TIMESTAMPTZ, SUPER
+- high compression, good performance very long CHAR and VARCHAR strings (i.e. freeform text such as product descriptions, comments, json, etc)
+
+Mostlyn -- SMALLINT, INT, BIGINT, DECIMAL
+- compresses values into smaller standard storage size
+- useful when data type often exceeds what most values require (i.e. you have many 2 character string in a VARCHAR(60))
+FROM DOCS: 
+                For example, apply MOSTLY8 to a column that is defined as a 16-bit integer column.
+                Applying MOSTLY16 to a column with a 16-bit data type or MOSTLY32 to a column with 
+                a 32-bit data type is disallowed.
+
+Run Length -- SMALLINT, INTEGER, BIGINT, DECIMAL, REAL, DOUBLE PRECISION, BOOLEAN, CHAR, VARCHAR, DATE, TIMESTAMP, TIMESTAMPTZ
+- replaces consecutive values with token storing value, count; stores in dict for each block of column values
+- best used when many columns are repeated consecutively, such as when they are sorted
+HOWEVER FROM DOCS:
+                We don't recommend applying run length encoding on any column that is designated as a sort key. 
+                Range-restricted scans perform better when blocks contain similar numbers of rows. 
+                If sort key columns are compressed much more highly than other columns in the same query, 
+                range-restricted scans might perform poorly.
+
+Text -- VARCHAR only
+- dictionary of unique words created for each block of coumn values; dict contains first 245 unique values. Replaces words with 1 byte representation / key
+- text32k is the same except instead of 245 words, it has as many words until it is filled with 32k space of words (minus bit of overhead)
+- useful when same words recur often
+FROM DOCS:
+                For example, consider the VENUENAME column in the VENUE table. Words such as Arena, Center, 
+                and Theatre recur in this column and are likely to be among the first 245 words encountered 
+                in each block if text255 compression is applied. If so, this column benefits from compression. 
+                This is because every time those words appear, they occupy only 1 byte of storage 
+                (instead of 5, 6, or 7 bytes, respectively).
+
+
+Zstandard -- SMALLINT, INTEGER, BIGINT, DECIMAL, REAL, DOUBLE PRECISION, BOOLEAN, CHAR, VARCHAR, DATE, TIMESTAMP, TIMESTAMPTZ, SUPE 
+- high compression, good performance in diverse datasets
+- works well with CHAR, VARCHAR columns that store a range of long and short strings
+- good general purpose compression method 
+FROM DOCS:
+                Where some algorithms, such as Delta encoding or Mostly encoding, can potentially use more storage 
+                space than no compression, ZSTD is very unlikely to increase disk usage.
+
+
+
+4. What is distribution key? How it is helpful in query performance.
+A distribution key is a column(s) that is used to determine what node data is stored on in Redshift. 
+If a lot of data is stored on the same node, this reduces performance because you are not sharing the processing load.
+So depending on the problem you can 
+
+ALL key -- makes table stored on every node
+    if joining / GROUP BY on a certain column frequently, and there are rows on seperate clusters, the nodes need to send over the data over the network to another node so that it can do the computation. 
+Even key -- makes table evenly distributed throughout nodes, to be able to share processing load
+
+Sort key -- stores data in memory in sorted order.
+    makes various queries more efficient such as MAX, MIN, ORDER BY
+    however it increases insert times
+
+
+
+'''

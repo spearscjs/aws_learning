@@ -55,7 +55,7 @@ def do_frameToTable(frame, table_name : str, schema : str) :
     :rtype: None if rows not returned, Int equal to number of rows affected (if integer returned for rows by sqlalchemy)
     """
     # CLOSE THE ENGINE???
-    return frame.to_sql(table_name, con = engine, schema=schema, if_exists='append', index=False)
+    return frame.to_sql(table_name, con = engine, schema=schema, if_exists='append', index=False, method='multi')
 
 
 
