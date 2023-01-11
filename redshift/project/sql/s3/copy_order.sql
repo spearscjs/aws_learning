@@ -1,4 +1,4 @@
-COPY cards_ingest.big_data 
+COPY cards_ingest.order
 FROM -- bucket path
 credentials --CREDENTIAL GOES HERE-- 
 csv IGNOREHEADER 1;

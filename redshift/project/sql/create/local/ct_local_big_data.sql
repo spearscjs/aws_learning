@@ -1,4 +1,4 @@
-create table IF NOT EXISTS cards_ingest.big_data (
+create table IF NOT EXISTS cards_ingest.order (
     order_id int, 
     brand_name varchar(20),
     product_name varchar(20) ,
