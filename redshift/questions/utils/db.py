@@ -1,5 +1,6 @@
 import psycopg2
 import pandas as pd
+import boto3
 from config import database_connection as dbc
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
@@ -99,3 +100,6 @@ def loadFromCSV(filePathName : str, table_name : str, schema : str):
     """
     frame = pd.read_csv(filePathName)
     return do_frameToTable(frame, table_name, schema)
+
+
+
