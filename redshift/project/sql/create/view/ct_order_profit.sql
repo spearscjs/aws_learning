@@ -1,5 +1,5 @@
 /*
-    8. Create col as profit_group the values are [ if profit percenatge is more 10% the "Bumper profit", it is 0 to 10% then "Marginal profit"
+    class_question6.8 Create col as profit_group the values are [ if profit percenatge is more 10% the "Bumper profit", it is 0 to 10% then "Marginal profit"
     if it is -5% to 0% then "Loss making" else "Bumper Loss"
     # 7. Create a new view by taking all the records where you have profit. Profit is sales amount -manufacturingcost. So add all the fields from order table
     # and cost from product_cost.

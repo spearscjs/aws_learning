@@ -5,7 +5,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 import sqlparse
 
+# public variable, used in IAM argument for queries requiring redshift IAM
+redshift_iam = dbc.redshift_iam 
 
+# public variable for sqlalchemy engine (hold connection data)
 engine = create_engine(URL.create(
     dbc.drivername,
     username=dbc.username,
@@ -14,10 +17,6 @@ engine = create_engine(URL.create(
     port = dbc.port,
     database=dbc.database
 ))
-
-# public variable, used in IAM argument for queries requiring redshift IAM
-redshift_iam = dbc.redshift_iam 
-
 
 def do_query(query : str, args : list ) :
     """
