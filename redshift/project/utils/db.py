@@ -3,6 +3,7 @@ import pandas as pd
 from config import database_connection as dbc
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
+import sqlparse
 
 
 engine = create_engine(URL.create(
@@ -14,6 +15,8 @@ engine = create_engine(URL.create(
     database=dbc.database
 ))
 
+# public variable, used in IAM argument for queries requiring redshift IAM
+redshift_iam = dbc.redshift_iam 
 
 
 def do_query(query : str, args : list ) :
@@ -59,7 +62,7 @@ def do_frameToTable(frame, table_name : str, schema : str) :
 
 
 
-def do_query_file(filePathname : str):
+def do_query_file(filePathname : str, args : list):
     """
     execute postgresql queries from filePathname on connected database
 
@@ -71,7 +74,8 @@ def do_query_file(filePathname : str):
     cur = conn.cursor()
     frame = None
     with open(filePathname, encoding = 'utf8') as f:
-        ret = cur.execute(f.read())
+        stripped = sqlparse.format(f.read(), strip_comments=True).strip() 
+        ret = cur.execute(stripped, args)
         print(filePathname + ' done.')
     if cur.description : # checks for returned table (if it has a description, the query has returned a table)
         data = cur.fetchall()

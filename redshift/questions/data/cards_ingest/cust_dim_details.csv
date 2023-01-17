@@ -1,9 +1,0 @@
-cust_id,state_cd,zip_cd,cust_first_name,cust_last_name,start_date,end_date,active_flag
-cust_101,NY,08922,Mike,doge,2022-01-01,2029-01-01,Y
-cust_102,CA,04922,sean,lan,2022-01-01,2029-01-01,Y
-cust_103,CA,05922,sachin,ram,2022-01-01,2029-01-01,Y
-cust_104,TX,08942,bill,kja,2022-01-01,2029-01-01,Y
-cust_105,CA,08122,Douge,lilly,2022-01-01,2029-01-01,Y
-cust_106,CA,08322,hence,crow,2022-01-01,2029-01-01,Y
-cust_107,NY,02122,Mike,doge,2022-02-05,2022-02-09,N
-cust_111,NV,09812,Hary,roel,2022-02-10,2029-01-01,N

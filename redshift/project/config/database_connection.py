@@ -3,6 +3,9 @@ import os
 
 is_redshift_conn = True # boolean, use redshift? else use localhost 
 
+# redshift iam
+redshift_iam = 'arn:aws:iam::775856445594:role/service-role/AmazonRedshift-CommandsAccessRole-20230109T135507'
+
 
 if is_redshift_conn:
     hostname = os.environ.get('REDSHIFT_HOSTNAME')
