@@ -101,52 +101,27 @@ GROUP BY tran_date, stat_cd, population_cnt;
 
 
 
-
 -- ASSUMING EACH UNIQUE CUSTOMER AFFECT THE POPULATION TOTAL FOR THE NEXT DAY
-WITH 
--- users per day, change representation of date so doesnt include timestamp 
-uniques AS (
-    SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
-    MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
+-- total unique customers by state,day
+WITH total_unique AS ( 
+    SELECT DISTINCT tran_date, stat_cd,
+        (SELECT COUNT(DISTINCT cust_id) FROM cards_ingest.tran_fact WHERE tran_date <= tf.tran_date AND stat_cd = tf.stat_cd) total_customers_per_state,
+        (SELECT COUNT(DISTINCT cust_id) cust_per_day FROM cards_ingest.tran_fact WHERE stat_cd = tf.stat_cd AND tran_date = tf.tran_date) daily_cust_count
     FROM cards_ingest.tran_fact tf
-    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
-        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL 
-    ORDER BY yr,mth,dy,stat_cd
-),
--- number of new customers per day per state
-new_cust_per_day AS ( 
-    SELECT DISTINCT u.stat_cd, u.yr, u.mth, u.dy, COALESCE(new_cust_per_day, 0) AS new_cust_per_day 
-    FROM uniques u LEFT JOIN 
-        (  
-            SELECT DISTINCT yr,mth,dy,u.stat_cd,  
-            COUNT(*) OVER (PARTITION BY u.stat_cd, yr,mth,dy) AS new_cust_per_day
-                FROM uniques u 
-                WHERE mth = EXTRACT(MONTH FROM cust_min_date) AND yr = EXTRACT(YEAR FROM cust_min_date) AND dy = EXTRACT(DAY FROM cust_min_date) 
-                GROUP BY yr,mth,dy,u.stat_cd,cust_id
-        ) nc
-    ON 
-        nc.yr = u.yr AND nc.mth = u.mth AND nc.dy = u.dy  AND nc.stat_cd = u.stat_cd
-),
--- sum of new cust per day
-sum_new_cust_per_day AS (
-    SELECT yr, mth, dy, stat_cd,
-        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy 
-            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_customers_per_state
-    FROM new_cust_per_day nc
-),
--- number of customers per day per state
-day_counts AS (
-    SELECT yr,mth,dy,stat_cd, COUNT(*) AS cust_per_day FROM uniques GROUP BY yr,mth,dy,stat_cd 
+    WHERE
+        -- dont allow null values in any column
+        tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+            AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL
+    ORDER BY stat_cd,tran_date
 )
-SELECT DISTINCT dc.yr, dc.mth, dc.dy, dc.stat_cd, cust_per_day, 
-    population_cnt, total_customers_per_state, 
+SELECT DISTINCT tu.*, 
+    population_cnt,
     population_cnt - total_customers_per_state AS total_promotion_target
-FROM day_counts dc 
-FULL OUTER JOIN sum_new_cust_per_day snc
-    ON  dc.stat_cd = snc.stat_cd AND dc.stat_cd = snc.stat_cd  AND dc.mth = snc.mth AND dc.yr = snc.yr AND dc.dy = snc.dy 
+FROM total_unique tu
 INNER JOIN lkp_data.lkp_state_details sd 
-    ON sd.stat_cd = dc.stat_cd
-ORDER BY yr, mth, dy, stat_cd;
+    ON sd.stat_cd = tu.stat_cd
+ORDER BY tran_date, stat_cd;
+
 
 
 
@@ -184,52 +159,27 @@ WHERE r = 2;
 
 
 -- ASSUMING EACH UNIQUE CUSTOMER AFFECT THE POPULATION TOTAL FOR THE NEXT DAY
-WITH 
--- users per day, change representation of date so doesnt include timestamp 
-uniques AS (
-    SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
-    MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
+WITH total_unique AS ( 
+    SELECT DISTINCT tran_date, stat_cd,
+        (SELECT COUNT(DISTINCT cust_id) FROM cards_ingest.tran_fact WHERE tran_date <= tf.tran_date AND stat_cd = tf.stat_cd) total_customers_per_state,
+        (SELECT COUNT(DISTINCT cust_id) cust_per_day FROM cards_ingest.tran_fact WHERE stat_cd = tf.stat_cd AND tran_date = tf.tran_date) daily_cust_count
     FROM cards_ingest.tran_fact tf
-    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
-        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL ORDER BY yr,mth,dy,stat_cd
-),
--- number of new customers per day per state
-new_cust_per_day AS ( 
-    SELECT DISTINCT u.stat_cd, u.yr, u.mth, u.dy, COALESCE(new_cust_per_day, 0) AS new_cust_per_day 
-    FROM uniques u LEFT JOIN 
-        (  
-            SELECT DISTINCT yr,mth,dy,u.stat_cd,  
-            COUNT(*) OVER (PARTITION BY u.stat_cd, yr,mth,dy) AS new_cust_per_day
-                FROM uniques u 
-                WHERE mth = EXTRACT(MONTH FROM cust_min_date) AND yr = EXTRACT(YEAR FROM cust_min_date) AND dy = EXTRACT(DAY FROM cust_min_date) 
-                GROUP BY yr,mth,dy,u.stat_cd,cust_id
-        ) nc
-    ON 
-        nc.yr = u.yr AND nc.mth = u.mth AND nc.dy = u.dy  AND nc.stat_cd = u.stat_cd
-),
--- sum of new cust per day
-sum_new_cust_per_day AS (
-    SELECT yr, mth, dy, stat_cd,
-        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy 
-            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_customers_per_state
-    FROM new_cust_per_day nc
-),
--- number of customers per day per state
-day_counts AS (
-    SELECT yr,mth,dy,stat_cd, COUNT(*) AS cust_per_day FROM uniques GROUP BY yr,mth,dy,stat_cd 
+    WHERE
+        -- dont allow null values in any column
+        tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+            AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL
+    ORDER BY stat_cd,tran_date
 ),
 total_promotion AS ( 
-    SELECT DISTINCT dc.yr, dc.mth, dc.dy, dc.stat_cd, cust_per_day, 
-        potential_customer_cnt, total_customers_per_state, 
-        (potential_customer_cnt - total_customers_per_state) * 5  AS total_promotion_cost
-    FROM day_counts dc 
-    FULL OUTER JOIN sum_new_cust_per_day snc
-        ON  dc.stat_cd = snc.stat_cd AND dc.stat_cd = snc.stat_cd  AND dc.mth = snc.mth AND dc.yr = snc.yr AND dc.dy = snc.dy 
+    SELECT DISTINCT tu.tran_date, tu.stat_cd, 
+        potential_customer_cnt,
+        potential_customer_cnt - total_customers_per_state AS total_promotion_target,
+        (potential_customer_cnt - total_customers_per_state) * 5 AS total_promotion_cost
+    FROM total_unique tu
     INNER JOIN lkp_data.lkp_state_details sd 
-        ON sd.stat_cd = dc.stat_cd
-    ORDER BY yr, mth, dy, stat_cd
+        ON sd.stat_cd = tu.stat_cd
+    ORDER BY tran_date, stat_cd
 )
-
 SELECT stat_cd, total_promotion_cost, rank FROM 
     (SELECT stat_cd, RANK() OVER (ORDER BY total_promotion_cost) rank, total_promotion_cost FROM 
         (SELECT DISTINCT stat_cd, MIN(total_promotion_cost) OVER (PARTITION BY stat_cd) total_promotion_cost
@@ -237,42 +187,20 @@ SELECT stat_cd, total_promotion_cost, rank FROM
 
 
 
+
 /*
 3. Same as question 1. But the number of customer from transaction table is total number of unique customer till that date .
 (Hint use window function)
 */
-WITH 
--- users per day, change representation of date so doesnt include timestamp 
-uniques AS (
-    SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
-    MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
+SELECT DISTINCT tran_date, stat_cd,
+        (SELECT COUNT(DISTINCT cust_id) FROM cards_ingest.tran_fact WHERE tran_date <= tf.tran_date AND stat_cd = tf.stat_cd) total_customers_per_state,
+        (SELECT COUNT(DISTINCT cust_id) cust_per_day FROM cards_ingest.tran_fact WHERE stat_cd = tf.stat_cd AND tran_date = tf.tran_date) daily_cust_count
     FROM cards_ingest.tran_fact tf
-    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
-        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL 
-    ORDER BY yr,mth,dy,stat_cd
-),
--- number of new customers per day per state
-new_cust_per_day AS ( 
-    SELECT DISTINCT u.stat_cd, u.yr, u.mth, u.dy, COALESCE(new_cust_per_day, 0) AS new_cust_per_day 
-    FROM uniques u LEFT JOIN 
-        (  
-            SELECT DISTINCT yr,mth,dy,u.stat_cd,  
-            COUNT(*) OVER (PARTITION BY u.stat_cd, yr,mth,dy) AS new_cust_per_day
-                FROM uniques u 
-                WHERE mth = EXTRACT(MONTH FROM cust_min_date) AND yr = EXTRACT(YEAR FROM cust_min_date) AND dy = EXTRACT(DAY FROM cust_min_date) 
-                GROUP BY yr,mth,dy,u.stat_cd,cust_id
-        ) nc
-    ON 
-        nc.yr = u.yr AND nc.mth = u.mth AND nc.dy = u.dy  AND nc.stat_cd = u.stat_cd
-),
-sum_new_cust_per_day AS (
-    SELECT yr, mth, dy, stat_cd, new_cust_per_day,
-        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd ORDER BY yr, mth, dy 
-            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_customers_per_state
-    FROM new_cust_per_day nc
-)
-SELECT * FROM sum_new_cust_per_day;
-
+    WHERE
+        -- dont allow null values in any column
+        tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+            AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL
+    ORDER BY stat_cd,tran_date
 
 /*
 4. Same as question 2. If state cd is NULL  and cust_id is cust_109 then make sure to change to TX  else CA and calculate states where
@@ -311,41 +239,18 @@ WHERE r = 2;
 /*
 5. Show me the total number of customer company has , total population and potential_customer_cnt across all the states
 */
-
-WITH 
--- users per day, change representation of date so doesnt include timestamp 
-uniques AS (
-    SELECT DISTINCT cust_id, stat_cd,EXTRACT(YEAR FROM tran_date) AS yr, EXTRACT(MONTH FROM tran_date) AS mth, EXTRACT(DAY FROM tran_date) AS dy,
-    MIN(tran_date) OVER (PARTITION BY cust_id, stat_cd) cust_min_date
+WITH total_unique AS ( 
+    SELECT DISTINCT tran_date, stat_cd,
+        (SELECT COUNT(DISTINCT cust_id) FROM cards_ingest.tran_fact WHERE tran_date <= tf.tran_date AND stat_cd = tf.stat_cd) total_customers_per_state,
+        (SELECT COUNT(DISTINCT cust_id) cust_per_day FROM cards_ingest.tran_fact WHERE stat_cd = tf.stat_cd AND tran_date = tf.tran_date) daily_cust_count
     FROM cards_ingest.tran_fact tf
-    WHERE tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
-        AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL  ORDER BY yr,mth,dy,stat_cd
-),
--- number of new customers per day per state
-new_cust_per_day AS ( 
-    SELECT DISTINCT u.stat_cd, u.yr, u.mth, u.dy, COALESCE(new_cust_per_day, 0) AS new_cust_per_day 
-    FROM uniques u LEFT JOIN 
-        (  
-            SELECT DISTINCT yr,mth,dy,u.stat_cd,  
-            COUNT(*) OVER (PARTITION BY u.stat_cd, yr,mth,dy) AS new_cust_per_day
-                FROM uniques u 
-                WHERE mth = EXTRACT(MONTH FROM cust_min_date) AND yr = EXTRACT(YEAR FROM cust_min_date) AND dy = EXTRACT(DAY FROM cust_min_date) 
-                GROUP BY yr,mth,dy,u.stat_cd,cust_id
-        ) nc
-    ON 
-        nc.yr = u.yr AND nc.mth = u.mth AND nc.dy = u.dy  AND nc.stat_cd = u.stat_cd
-),
--- sum of new cust per day
-sum_new_cust_per_day AS (
-    SELECT yr, mth, dy, stat_cd,
-        SUM(new_cust_per_day) OVER (PARTITION BY stat_cd) AS total_customers_per_state
-    FROM new_cust_per_day nc
+    WHERE
+        -- dont allow null values in any column
+        tran_id IS NOT NULL AND cust_id IS NOT NULL AND tf.stat_cd IS NOT NULL 
+            AND tran_ammt IS NOT NULL AND tran_date IS NOT NULL
+    ORDER BY stat_cd,tran_date
 )
-SELECT DISTINCT snc.stat_cd
-    population_cnt, total_customers_per_state, 
-    population_cnt,
-    potential_customer_cnt
-FROM sum_new_cust_per_day snc
-INNER JOIN lkp_data.lkp_state_details sd 
-    ON sd.stat_cd = snc.stat_cd
-ORDER BY snc.stat_cd;
+SELECT tu.stat_cd, MAX(total_customers_per_state) total_customers, population_cnt, potential_customer_cnt
+FROM total_unique tu INNER JOIN lkp_data.lkp_state_details sd 
+    ON sd.stat_cd = tu.stat_cd
+GROUP BY tu.stat_cd, population_cnt, potential_customer_cnt 
