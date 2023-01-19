@@ -25,14 +25,11 @@ CREATE TABLE hadoop_ingest.tran_fact(
     tran_type varchar(1)
 );
 INSERT INTO hadoop_ingest.tran_fact (tran_id, cust_id, tran_date, tran_ammount, tran_type) VALUES 
-    (102019,'CA1001','2022-01-02',200,'D'),
-    (102020,'CA1001','2022-02-01',1200,'C'),
     (102021,'CA1002','2022-02-01',700,'C'),
     (102022,'CA1003','2022-02-01',500,'C'),
     (102020,'CA1001','2022-02-02',200,'C'),
     (102023,'CA1004','2022-02-02',900,'C'),
     (102020,'CA1001','2022-02-02',200,'D'),
-   
     (102029,'CA1001','2022-02-02',700,'C'),
     (102024,'CA1005','2022-02-03',12200,'C'),
     (102025,'CA1003','2022-02-03',200,'D'),
@@ -47,9 +44,15 @@ SELECT tran_date, COUNT(cust_id) unique_customers FROM
     (SELECT DISTINCT cust_id, tran_date FROM hadoop_ingest.tran_fact GROUP BY cust_id, tran_date) t
 GROUP BY tran_date;
 
-
+SELECT tran_date, COUNT(DISTINCT cust_id) unique_customers 
+FROM hadoop_ingest.tran_fact GROUP BY tran_date;
 
 -- 2. Total number of unique customer till date
+/*
+rank -- partition by cust order date
+
+
+*/
 WITH 
 uniques AS (
     SELECT DISTINCT cust_id, tran_date, MIN(tran_date) OVER (PARTITION BY cust_id) cust_min_date 
@@ -76,6 +79,18 @@ sum_new_cust_per_day AS (
 SELECT * FROM sum_new_cust_per_day;
 
 
+
+WITH ranks AS (
+    SELECT DISTINCT cust_id, tran_date, RANK() OVER(PARTITION BY cust_id ORDER BY tran_date)
+    FROM hadoop_ingest.tran_fact
+)
+SELECT DISTINCT tran_date, SUM(rank) OVER(ORDER BY tran_date) FROM ranks WHERE rank = 1;
+-- lead or lag function with max????
+-- can do sum, not coalesce but do csae statement, if then 0
+
+;
+
+part cust id order by date
 
 -- 3. Total transaction amount per customer per day ( if its C then add if D then subtract )
 SELECT tran_date, cust_id, SUM(tran_ammt) total_tran_ammt

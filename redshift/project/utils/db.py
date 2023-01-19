@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import sql
 import pandas as pd
 from config import database_connection as dbc
 from sqlalchemy import create_engine
@@ -87,6 +88,8 @@ def do_query_file(filePathname : str, args : list):
 
 
 
+
+
 def loadFromCSV(filePathName : str, table_name : str, schema : str):
     """
     execute postgresql query to append schema.table_name with frame data on connected database; 
@@ -102,3 +105,35 @@ def loadFromCSV(filePathName : str, table_name : str, schema : str):
     """
     frame = pd.read_csv(filePathName)
     return do_frameToTable(frame, table_name, schema)
+
+
+
+def copy(table_name : str, schema_name : str, location : str, iam_role : str, delimiter : str):
+    """
+    execute postgresql query to copy data from s3 bucket (assumes CSV for now)
+
+    :param table_name: name of table to be overwritten
+    :param schema: name of schema that table_name is in
+   
+    :param location: name of s3 bucket / s3 file to be copied
+    :param iam_role: redshift role to gain access to s3
+    :param delimiter: delimiter used in csv file inside location
+    """
+    conn = psycopg2.connect( host=dbc.hostname, user=dbc.username, password=dbc.password, dbname=dbc.database, port=dbc.port )
+    cur = conn.cursor()
+    frame = None
+    args = [location, 'aws_iam_role=' + iam_role, delimiter]
+
+    with open('sql/query_templates/copy.sql', encoding = 'utf8') as f:
+        query = f.read()
+    stripped = sqlparse.format(query, strip_comments=True).strip()
+    query = sql.SQL(query).format(sql.Identifier('hadoop'),sql.Identifier('tran_fact'))
+
+    ret = cur.execute(
+        query, args
+    )
+    cur.close()
+    conn.commit()   
+    conn.close()
+ 
+    

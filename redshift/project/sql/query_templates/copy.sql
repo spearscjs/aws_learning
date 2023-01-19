@@ -6,7 +6,7 @@
     :param: string -- redshift_iam role
     :param: string -- delimiter: delimiter to use in CSV file
 */
-COPY %s -- table name
+COPY {}.{} -- schema, table name
 FROM %s -- bucket path
 credentials %s -- CREDENTIAL GOES HERE
 CSV
