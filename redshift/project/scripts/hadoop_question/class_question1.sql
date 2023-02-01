@@ -59,14 +59,14 @@ WITH ranks AS (
 SELECT DISTINCT tran_date, 
     SUM(CASE WHEN rank = 1 THEN 1 ELSE 0 END) OVER(ORDER BY tran_date) total_unique_cust 
 FROM ranks
-ORDER BY tran_date;
+ ORDER BY tran_date;
 
 
 -- using nested select
 SELECT DISTINCT tran_date,
        (SELECT COUNT(DISTINCT cust_id) FROM hadoop_ingest.tran_fact  WHERE tran_date <= t.tran_date) total_unique_cust
 FROM hadoop_ingest.tran_fact t
-GROUP BY tran_date
+-- GROUP BY tran_date
 ORDER BY tran_date;
 
 

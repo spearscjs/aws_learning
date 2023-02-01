@@ -1,0 +1,14 @@
+hadoop fs -ls /user/
+hdfs dfs -mkdir -p /user/data/src_customer/
+hdfs dfs -ls /user/data/src_customer/
+hdfs dfs -ls s3a://ppg-test-bucket/drug/
+
+
+
+error:
+--Caused by: org.apache.hadoop.ipc.RemoteException: Permission denied: user=anonymous, access=WRITE, inode="/user":hdfs:hdfsadmingroup:drwxr-xr-x
+--        at org.apache.hadoop.hdfs.server.namenode.FSPermissionChecker.check(FSPermissionChecker.java:399)
+
+
+--  hadoop fs -mkdir /user/anonymous
+--  hadoop fs -chown anonymous /user/anonymous
