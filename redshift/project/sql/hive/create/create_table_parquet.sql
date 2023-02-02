@@ -17,10 +17,11 @@ acct_hldr_first_name varchar(20),
 acct_hldr_last_name varchar(20),
 dataset_date varchar(50))
 row format delimited fields terminated by ','
+stored as PARQUET
 location "s3://quintrix-spearscjs/data/src_customer/customer_details/"
-tblproperties ("skip.header.line.count"="1")
+tblproperties ("skip.header.line.count"="1");
 
-aws s3 cp s3://aws-train-nov-de/cards_ingest/account_src/cards_account_ingest_2022-01-02.csv s3://quintrix-spearscjs/data/src_customer/customer_details/
+aws s3 cp s3://quintrix-spearscjs/cards_ingest/account_src/cards_account_ingest_2022-01-02.csv s3://quintrix-spearscjs/data/src_customer/customer_details/
 
 
 
