@@ -1,1 +1,1 @@
-hive -f sql/cards_dw/template/load_transaction_fact.hql -hiveconf dataset_date="$1"
+hive -f sql/cards_dw/template/load_transaction_fact.hql -hivevar dataset_date="$1"

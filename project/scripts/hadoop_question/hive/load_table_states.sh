@@ -1,1 +1,1 @@
-hive -f sql/src_customer/template/load_table_states.hql -hiveconf dataset_date="$1"
+hive -f sql/src_customer/template/load_table_states.hql -hivevar dataset_date="$1"

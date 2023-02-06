@@ -1,0 +1,1 @@
+hive -f sql/cards_ingest/template/top_n_ev_vehicle_info.sql -hivevar n=$1

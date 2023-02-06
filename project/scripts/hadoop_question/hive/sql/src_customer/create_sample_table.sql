@@ -19,7 +19,7 @@ create database src_customer
 location "/user/data/src_customer";
 
 --set src_schema='src_customer';
---use ${hiveconf:src_sche
+--use ${hivevar:src_sche
 
 
 

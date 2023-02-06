@@ -51,7 +51,6 @@ def generate_for_days(min_record_num: int, max_record_num: int, start_date: date
 filenames = generate_for_days(record_count_min, record_count_max, start_date, number_of_days)
 
 
-print(filenames)
 # upload data to s3
 for f in filenames:
     filename = f[0]
