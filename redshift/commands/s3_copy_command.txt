@@ -1,6 +1,0 @@
-
-Copy Tables from a file:
-
-COPY my_schema.my_table
-from 's3://bucket-name/file.csv’
-iam_role ‘<my-arn>’;
