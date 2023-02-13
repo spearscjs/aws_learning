@@ -4,7 +4,7 @@
 # 4. Build and Run a crawler to create table.  Check the partition.
 # 5. Run the spark job to add another folder.load_date folder
 # 6. Run crawler again to see the new metadata.
-# 7. Add a new col in the datasets by changing the spark code.
+# 7. Add a new col in the datasets by changing the spark code. (see class_question2)
 # 8. Run crawler again to see the new metadata.
 
 from pyspark.sql import SparkSession
