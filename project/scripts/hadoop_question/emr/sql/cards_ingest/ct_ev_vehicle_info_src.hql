@@ -1,11 +1,12 @@
-create external table if not exists cards_ingest.ev_vehicle_info
+create external table if not exists cards_ingest.ev_vehicle_info_src
 (
     vin varchar(10),
     county varchar(30),
     city varchar(30),
     state varchar(2),
     postal_code varchar(5),
-    model_year varchar(4),
+    model_year int,
+    make string,
     model string,
     electric_vehicle_type string,
     cafv_eligibility string,
@@ -17,7 +18,6 @@ create external table if not exists cards_ingest.ev_vehicle_info
     electric_utility string,
     census_tract_msrp_2020 string
 )
-PARTITIONED BY (make string)
-stored as parquet
-location "s3://quintrix-spearscjs/data/cards_ingest/ev_vehicle_info/"
-tblproperties ("parquet.compression"="SNAPPY", "skip.header.line.count"="1");
+row format delimited fields terminated by ','
+location "s3://quintrix-spearscjs/data/cards_ingest/ev_vehicle_info_src/"
+tblproperties ("skip.header.line.count"="1");

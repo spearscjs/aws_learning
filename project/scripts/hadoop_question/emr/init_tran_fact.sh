@@ -7,9 +7,7 @@ hive -f sql/src_customer/cd_src_customer.hql
 hive -f sql/src_customer/ct_tran_fact.hql
 
 # partition table
-hive -e "-- Required parameter for dynamic partitions
-set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict;
+hive -e "
 alter table src_customer.tran_fact add partition (dataset_date='2023-01-01');
 alter table src_customer.tran_fact add partition (dataset_date='2023-01-02');
 alter table src_customer.tran_fact add partition (dataset_date='2023-01-03');
@@ -48,4 +46,3 @@ hive -f sql/src_customer/ct_table_states.hql
 ./load_transaction_fact.sh 2023-01-06
 ./load_transaction_fact.sh 2023-01-07
 ./load_transaction_fact.sh 2023-01-08
-

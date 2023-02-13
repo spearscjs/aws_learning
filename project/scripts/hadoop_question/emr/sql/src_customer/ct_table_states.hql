@@ -1,7 +1,3 @@
--- Required parameter for dynamic partitions
-set hive.exec.dynamic.partition=true;
-set hive.exec.dynamic.partition.mode=nonstrict;
-
 create table if not exists src_customer.table_states (
     load_date date,
     rec_count int
