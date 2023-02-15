@@ -39,13 +39,11 @@ if __name__ == "__main__":
     # skip first argument (argv[0] is file for spark-submit [filename])
     for date_str in sys.argv[1:]:
 
-        src_loc = f"s3://quintrix-spearscjs-landing/cards_ingest/cards_account_ingest_src/dataset_date={date_str}/cards_account_ingest_{date_str}.csv"
-        dest_loc = f"s3://quintrix-spearscjs-transformed/src_customer/customer_pyspark/"
+        src_loc = f"s3://quintrix-spearscjs/data/src_customer/cards_account_ingest_src/dataset_date={date_str}/cards_account_ingest_{date_str}.csv"
+        dest_loc = f"s3://quintrix-spearscjs/data/src_customer/customer_pyspark/"
        
         # read in csv data to transform
         df=spark.read.csv(src_loc, header=True)
         df = transform(df)
         df = df.drop("account_id_type")
         df.write.parquet(dest_loc, partitionBy='dataset_date', mode='append')
-
-    spark.stop()
