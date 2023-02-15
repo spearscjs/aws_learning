@@ -55,7 +55,6 @@ df_CABD.show()
 
 #spark.sql("SELECT dataset_date, account_type, count(account_id) AS count_accuont_by_type FROM src_customer.customer_pyspark GROUP BY dataset_date").show()
 #customer_pyspark.show(10)
-# group by dataset_date
 df_CABT = df.groupBy(df.account_type).agg(count(df.account_id)).withColumnRenamed('count(account_id)', 'count_account_by_type')
 df_CABT.show(10)
 
