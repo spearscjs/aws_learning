@@ -31,13 +31,15 @@ df.show(10)
 
 
 # df=Read 1 week data
-# 1. Get the total number of account_id by account_open_dt as count_accont_by_date. [here you will get 7 record]
-# spark-submit class_question2.py 2022-01-01 2022-01-02 2022-01-03 2022-01-04 2022-01-05 2022-01-06 2022-01-07 2022-01-08 2022-01-09 2022-01-10
 paths = []
-for date_str in sys.argv[1:]:
+for date_str in ['2022-01-01']:
   paths.append(f"s3://quintrix-spearscjs/data/src_customer/customer_pyspark/dataset_date={date_str}")
 df=spark.read.format("parquet").option("basePath", f"s3://quintrix-spearscjs/data/src_customer/customer_pyspark/").load(paths)
 df.show(10)
+
+
+# 1. Get the total number of account_id by account_open_dt as count_accont_by_date. [here you will get 7 record]
+# spark-submit class_question2.py 2022-01-01 2022-01-02 2022-01-03 2022-01-04 2022-01-05 2022-01-06 2022-01-07 2022-01-08 2022-01-09 2022-01-10
 
 
 # group by account_open_dt
