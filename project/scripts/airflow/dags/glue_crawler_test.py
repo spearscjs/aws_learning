@@ -6,7 +6,6 @@ from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
 from airflow.sensors.s3_key_sensor import S3KeySensor
 
-
 default_args = {
     'owner': 'me',
     'start_date': datetime(2023, 2, 21),
@@ -29,6 +28,7 @@ with DAG(dag_id='glue_af_pipeline', default_args=default_args, schedule_interval
     glue_cust_job = GlueJobOperator(
         task_id="glue_cust_job",
         job_name='test_glue_job',
+        s3_bucket='quintrix-spearscjs'
     )
 
     task_a >> glue_cust_job
